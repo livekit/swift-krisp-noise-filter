@@ -15,7 +15,7 @@ public class LiveKitKrispNoiseFilter {
     private let krisp = KrispNoiseFilter()
 
     private struct State {
-        var isEnabled: Bool = false
+        var isEnabled: Bool = true
         var isInitializedWithRate: Int?
     }
 
