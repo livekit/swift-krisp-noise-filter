@@ -14,23 +14,21 @@ let package = Package(
             targets: ["LiveKitKrispNoiseFilter"]
         ),
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/livekit/client-sdk-swift.git", .upToNextMajor(from: "2.0.5")),
+    ],
     targets: [
+        // .binaryTarget(name: "KrispNoiseFilter", path: "KrispNoiseFilter.xcframework"),
         .binaryTarget(
             name: "KrispNoiseFilter",
-            url: "https://storage.unxpected.co.jp/public/KrispNoiseFilter.xcframework.zip?",
-            checksum: "ef184c7ce19a559a339bf6030bbd707c2b4dd5897a1484f1192b6504a1e9b727"
+            url: "https://storage.unxpected.co.jp/public/KrispNoiseFilter.xcframework.zip",
+            checksum: "e56d5ce6def817be4cedc06a444f1f1c0a538ca1d2885c2965fc1a8c305db28f"
         ),
         .target(
             name: "LiveKitKrispNoiseFilter",
             dependencies: [
+                .product(name: "LiveKit", package: "client-sdk-swift"),
                 "KrispNoiseFilter",
-            ],
-            resources: [
-                .copy("Resources/c5.n.s.20949d.kw"),
-                .copy("Resources/c5.s.w.c9ac8f.kw"),
-                .copy("Resources/c6.f.s.ced125.kw"),
-                .copy("Resources/VAD_model.kw"),
             ]
         ),
     ]

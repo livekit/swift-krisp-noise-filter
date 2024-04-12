@@ -1,60 +1,70 @@
-/*
- * Copyright 2024 LiveKit
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import Foundation
 import KrispNoiseFilter
 import LiveKit
 
 enum LiveKitKrispNoiseFilterError: Error {
-    case resourceNotFound
+    case globalInitializationFailed
 }
 
-public class LiveKitKrispNoiseFilter: AudioCustomProcessingDelegate {
-    let krisp: KrispNoiseFilter
-
-    public init() throws {
-        guard let resourceURL = Bundle.module.url(forResource: "c6.f.s.ced125", withExtension: "kw") else {
-            throw LiveKitKrispNoiseFilterError.resourceNotFound
-        }
-        let model = try Data(contentsOf: resourceURL)
-        krisp = KrispNoiseFilter(modelBlob: model)
+public class LiveKitKrispNoiseFilter {
+    public var isEnabled: Bool {
+        get { _state.isEnabled }
+        set { _state.mutate { $0.isEnabled = newValue } }
     }
 
+    private let krisp = KrispNoiseFilter()
+
+    private struct State {
+        var isEnabled: Bool = false
+        var isInitializedWithRate: Int?
+    }
+
+    private let _state = StateSync(State())
+
+    public init() {
+        // This should never fail
+        if !KrispNoiseFilter.krispGlobalInit() {
+            print("LiveKitKrispNoiseFilter GlobalInit Failed")
+        }
+    }
+}
+
+extension LiveKitKrispNoiseFilter: AudioCustomProcessingDelegate {
     public func audioProcessingInitialize(sampleRate sampleRateHz: Int, channels: Int) {
         krisp.initialize(Int32(sampleRateHz), numChannels: Int32(channels))
+        _state.mutate {
+            $0.isInitializedWithRate = sampleRateHz
+        }
     }
 
     public func audioProcessingProcess(audioBuffer: LiveKit.LKAudioBuffer) {
-        krisp.process(Int32(audioBuffer.bands),
-                      numFrames: Int32(audioBuffer.frames),
-                      bufferSize: Int32(audioBuffer.framesPerBand),
-                      buffer: audioBuffer.rawBuffer(forChannel: 0))
+        guard _state.isEnabled else { return }
+
+        for channel in 0 ..< audioBuffer.channels {
+            let result = krisp.process(withBands: Int32(audioBuffer.bands),
+                                       frames: Int32(audioBuffer.frames),
+                                       bufferSize: Int32(audioBuffer.framesPerBand),
+                                       buffer: audioBuffer.rawBuffer(forChannel: channel))
+            if !result {
+                print("LiveKitKrispNoiseFilter Process failed, channel: \(channel)")
+            }
+        }
     }
 
     public func audioProcessingRelease() {
-        //
+        print("LiveKitKrispNoiseFilter Release")
     }
+}
 
-    // New
-
-    public func audioProcessingRoomDidConnect(withUrl url: String, token: String) {
-        krisp.isEnabled(url, withToken: token)
-    }
-
-    public func audioProcessingName() -> String {
-        krisp.getName()
+extension LiveKitKrispNoiseFilter: RoomDelegate {
+    public func room(_ room: Room, didUpdateConnectionState connectionState: ConnectionState, from oldConnectionState: ConnectionState) {
+        if connectionState == .connected, oldConnectionState != .connected {
+            // Request authentication anytime Room connects...
+            Task {
+                guard let url = room.url, let token = room.token else { return }
+                let result = await krisp.authorize(withUrl: url, token: token)
+                print("LiveKitKrispNoiseFilter Authorize: \(result)")
+            }
+        }
     }
 }
