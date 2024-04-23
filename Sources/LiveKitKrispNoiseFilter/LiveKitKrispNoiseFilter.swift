@@ -58,13 +58,19 @@ extension LiveKitKrispNoiseFilter: AudioCustomProcessingDelegate {
 
 extension LiveKitKrispNoiseFilter: RoomDelegate {
     public func room(_ room: Room, didUpdateConnectionState connectionState: ConnectionState, from oldConnectionState: ConnectionState) {
-        if connectionState == .connected, oldConnectionState != .connected {
-            // Request authentication anytime Room connects...
-            Task {
-                guard let url = room.url, let token = room.token else { return }
-                let result = await krisp.authorize(withUrl: url, token: token)
-                print("LiveKitKrispNoiseFilter Authorize: \(result)")
-            }
-        }
+        krisp.update(room.toContext(connectionState))
+    }
+}
+
+extension Room {
+    func toContext(_ connectionState: ConnectionState) -> LiveKitRoomContext {
+        LiveKitRoomContext(sid: sid?.stringValue,
+                           name: name,
+                           serverVersion: serverVersion,
+                           serverRegion: serverRegion,
+                           serverNodeId: serverNodeId,
+                           connectionState: LiveKitConnectionState(rawValue: connectionState.rawValue) ?? .Disconnected,
+                           url: url,
+                           token: token)
     }
 }
