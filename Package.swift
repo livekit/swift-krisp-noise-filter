@@ -20,8 +20,8 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "KrispNoiseFilter",
-            url: "https://github.com/livekit/swift-krisp-noise-filter/releases/download/0.0.3/KrispNoiseFilter.xcframework.zip",
-            checksum: "47062407c857afe519b210cec35fac4f52f0bd0806ea934d97dcce290f1c06c9"
+            url: "https://github.com/livekit/swift-krisp-noise-filter/releases/download/0.0.4/KrispNoiseFilter.xcframework.zip",
+            checksum: "4bca2518aabea73b5b75eede6ef0e3e664315ecaeb0c0dd72563d79d13384db5"
         ),
         .target(
             name: "LiveKitKrispNoiseFilter",
