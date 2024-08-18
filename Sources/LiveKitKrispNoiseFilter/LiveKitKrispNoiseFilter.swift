@@ -30,6 +30,7 @@ public class LiveKitKrispNoiseFilter {
 }
 
 extension LiveKitKrispNoiseFilter: AudioCustomProcessingDelegate {
+    public var audioProcessingName: String { kLiveKitKrispAudioProcessorName }
     public func audioProcessingInitialize(sampleRate sampleRateHz: Int, channels: Int) {
         krisp.initialize(Int32(sampleRateHz), numChannels: Int32(channels))
         _state.mutate {
