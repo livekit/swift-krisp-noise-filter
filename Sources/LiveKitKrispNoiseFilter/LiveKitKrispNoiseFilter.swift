@@ -31,10 +31,20 @@ public class LiveKitKrispNoiseFilter {
 
 extension LiveKitKrispNoiseFilter: AudioCustomProcessingDelegate {
     public var audioProcessingName: String { kLiveKitKrispAudioProcessorName }
+
+    // This will be invoked anytime sample rate changes, for example switching Speaker <-> AirPods.
     public func audioProcessingInitialize(sampleRate sampleRateHz: Int, channels: Int) {
-        krisp.initialize(Int32(sampleRateHz), numChannels: Int32(channels))
-        _state.mutate {
+        let isFirstInitialize = _state.mutate {
+            let result = $0.isInitializedWithRate == nil
             $0.isInitializedWithRate = sampleRateHz
+            return result
+        }
+
+        if isFirstInitialize {
+            krisp.initialize(Int32(sampleRateHz), numChannels: Int32(channels))
+        } else {
+            // Krisp already initialized, reset with new sample rate.
+            krisp.reset(Int32(sampleRateHz))
         }
     }
 
