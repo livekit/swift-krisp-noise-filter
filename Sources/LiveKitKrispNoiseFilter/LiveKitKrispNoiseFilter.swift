@@ -33,7 +33,7 @@ public class LiveKitKrispNoiseFilter {
 
         // Throttle high-frequency errors to avoid spamming the console
         errorSubject
-            .throttle(for: .seconds(15), scheduler: DispatchQueue.main, latest: true)
+            .throttle(for: .seconds(60), scheduler: DispatchQueue.main, latest: true)
             .sink { message in
                 print(message)
             }
