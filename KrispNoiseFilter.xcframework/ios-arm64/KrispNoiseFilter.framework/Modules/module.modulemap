@@ -1,0 +1,6 @@
+framework module KrispNoiseFilter {
+  umbrella header "KrispNoiseFilter.h"
+  export *
+
+  module * { export * }
+}
