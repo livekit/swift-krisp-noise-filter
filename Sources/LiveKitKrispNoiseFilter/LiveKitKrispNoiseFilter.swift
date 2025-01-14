@@ -3,6 +3,18 @@ import KrispNoiseFilter
 import LiveKit
 import Combine
 
+public enum LiveKitKrispModelType {
+    case NC
+    case BVC
+
+    var krispModelType: KrispModelType {
+        switch self {
+        case .NC: return .NC
+        case .BVC: return .BVC
+        }
+    }
+}
+
 enum LiveKitKrispNoiseFilterError: Error {
     case globalInitializationFailed
 }
@@ -25,10 +37,10 @@ public class LiveKitKrispNoiseFilter {
     private let errorSubject = PassthroughSubject<String, Never>()
     private var cancellables = Set<AnyCancellable>()
 
-    public init() {
+    public init(modelType: LiveKitKrispModelType = .NC) {
         // This should never fail
-        if !KrispNoiseFilter.krispGlobalInit() {
-            print("LiveKitKrispNoiseFilter GlobalInit Failed")
+        if !KrispNoiseFilter.krispGlobalInit(modelType.krispModelType) {
+            print("LiveKitKrispNoiseFilter GlobalInit Failed with \(modelType)")
         }
 
         // Throttle high-frequency errors to avoid spamming the console
