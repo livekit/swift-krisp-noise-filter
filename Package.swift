@@ -21,7 +21,7 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "KrispNoiseFilter",
-            path: "../krisp-noise-filter/packages/swift/build/KrispNoiseFilter.xcframework.zip"
+            path: "KrispNoiseFilter.xcframework.zip"
             // checksum: "2d8446bdd0a0fabc47f9739c4eefd980959ba16683a9b01b1feb7e34c420dae7"
         ),
         .target(
