@@ -10,3 +10,4 @@ DerivedData/
 .swiftpm
 Package.resolved
 KrispNoiseFilter.xcframework/
+KrispNoiseFilter.xcframework.zip

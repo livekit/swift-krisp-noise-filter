@@ -21,7 +21,7 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "KrispNoiseFilter",
-            path: "./KrispNoiseFilter.xcframework"
+            url: "https://github.com/livekit/swift-krisp-noise-filter/raw/913d47a13477cdd85e583d7f7b306b867942120d/KrispNoiseFilter.xcframework.zip"
         ),
         .target(
             name: "LiveKitKrispNoiseFilter",
