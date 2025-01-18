@@ -11,3 +11,5 @@ DerivedData/
 Package.resolved
 KrispNoiseFilter.xcframework/
 KrispNoiseFilter.xcframework.zip
+KrispNoiseFilter-*.xcframework/
+KrispNoiseFilter-*.xcframework.zip
