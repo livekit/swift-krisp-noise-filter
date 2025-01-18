@@ -1,27 +1,31 @@
 import Foundation
+import KrispNoiseFilter
 import LiveKit
 import Combine
 
 public enum LiveKitKrispModelType {
     case NC
     case BVC
+
+    var krispModelType: KrispModelType {
+        switch self {
+        case .NC: return .NC
+        case .BVC: return .BVC
+        }
+    }
 }
 
 enum LiveKitKrispNoiseFilterError: Error {
     case globalInitializationFailed
 }
 
-// Base implementation that both variants will use
 public class LiveKitKrispNoiseFilter {
-    // All shared implementation code goes here
-    // Make the krisp instance internal so subclasses can access it
-    internal var krisp: KrispNoiseFilterProtocol!
-
     public var isEnabled: Bool {
         get { _state.isEnabled }
         set { _state.mutate { $0.isEnabled = newValue } }
     }
 
+    private let krisp = KrispNoiseFilter()
 
     private struct State {
         var isEnabled: Bool = true
@@ -34,6 +38,11 @@ public class LiveKitKrispNoiseFilter {
     private var cancellables = Set<AnyCancellable>()
 
     public init(modelType: LiveKitKrispModelType = .NC) {
+        // This should never fail
+        if !KrispNoiseFilter.krispGlobalInit(modelType.krispModelType) {
+            print("LiveKitKrispNoiseFilter GlobalInit Failed with \(modelType)")
+        }
+
         // Throttle high-frequency errors to avoid spamming the console
         errorSubject
             .throttle(for: .seconds(60), scheduler: DispatchQueue.main, latest: true)
@@ -42,15 +51,6 @@ public class LiveKitKrispNoiseFilter {
             }
             .store(in: &cancellables)
     }
-}
-
-// Define the protocol that both NC and BVC frameworks must conform to
-internal protocol KrispNoiseFilterProtocol {
-    func initialize(_ sampleRate: Int32, numChannels: Int32)
-    func reset(_ sampleRate: Int32)
-    func process(withBands: Int32, frames: Int32, bufferSize: Int32, buffer: UnsafeMutableRawPointer) -> Bool
-    func update(_ context: LiveKitRoomContext)
-    var isAuthorized: Bool { get set }
 }
 
 extension LiveKitKrispNoiseFilter: AudioCustomProcessingDelegate {
