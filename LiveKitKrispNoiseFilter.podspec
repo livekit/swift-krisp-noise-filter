@@ -13,7 +13,7 @@ Pod::Spec.new do |spec|
     spec.ios.deployment_target = '13.0'
     spec.osx.deployment_target = '10.15'
   
-    spec.source       = { :path => "KrispNoiseFilter.xcframework.zip" }
+    spec.source       = { :http => "https://github.com/livekit/swift-krisp-noise-filter/releases/download/0.0.7/KrispNoiseFilter.xcframework.zip" }
     spec.vendored_frameworks = "KrispNoiseFilter.xcframework"
     
   end

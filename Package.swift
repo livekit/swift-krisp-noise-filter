@@ -10,34 +10,36 @@ let package = Package(
         .macOS(.v10_15),
     ],
     products: [
-        // Complete package with all models
+        // Default library, contains all supported models. Best for testing or if you need multiple models.
         .library(
             name: "LiveKitKrispNoiseFilter",
             targets: ["LiveKitKrispNoiseFilter"]
         ),
-        // Individual model variants
+
+        // Optimized variants that include only a specific model. Best for production.
+        // Note: These are code-compatible with the default library, but if you try to use an unsupported model it will fail and/or crash.
         .library(
-            name: "LiveKitKrispNoiseFilterNC",
-            targets: ["LiveKitKrispNoiseFilterNC"]
+            name: "LiveKitKrispNoiseFilter-NC", // Contains only the NC model
+            targets: ["LiveKitKrispNoiseFilter-NC"]
         ),
         .library(
-            name: "LiveKitKrispNoiseFilterBVC",
-            targets: ["LiveKitKrispNoiseFilterBVC"]
+            name: "LiveKitKrispNoiseFilter-BVC", // Contains only the BVC model
+            targets: ["LiveKitKrispNoiseFilter-BVC"]
         ),
     ],
     dependencies: [
         .package(url: "https://github.com/livekit/client-sdk-swift.git", from: "2.0.13"),
     ],
     targets: [
-        // Shared implementation
+        // The base implementation is shared between all libraries
         .target(
-            name: "LiveKitKrispNoiseFilterShared",
+            name: "Shared",
             dependencies: [
                 .product(name: "LiveKit", package: "client-sdk-swift"),
             ]
         ),
         
-        // Complete package target with all models
+        // Complete library target with all models
         .binaryTarget(
             name: "KrispNoiseFilter",
             path: "./KrispNoiseFilter.xcframework.zip"
@@ -45,34 +47,34 @@ let package = Package(
         .target(
             name: "LiveKitKrispNoiseFilter",
             dependencies: [
-                "LiveKitKrispNoiseFilterShared",
+                "Shared",
                 "KrispNoiseFilter",
             ]
         ),
         
-        // NC variant
+        // NC-only library. Uses an xcframework with other models stripped out.
         .binaryTarget(
-            name: "KrispNoiseFilterNC",
+            name: "KrispNoiseFilter-NC",
             path: "./KrispNoiseFilter-NC.xcframework.zip"
         ),
         .target(
-            name: "LiveKitKrispNoiseFilterNC",
+            name: "LiveKitKrispNoiseFilter-NC",
             dependencies: [
-                "LiveKitKrispNoiseFilterShared",
-                "KrispNoiseFilterNC",
+                "Shared",
+                "KrispNoiseFilter-NC",
             ]
         ),
         
-        // BVC variant
+        // BVC-only library. Uses an xcframework with other models stripped out.
         .binaryTarget(
-            name: "KrispNoiseFilterBVC",
+            name: "KrispNoiseFilter-BVC",
             path: "./KrispNoiseFilter-BVC.xcframework.zip"
         ),
         .target(
-            name: "LiveKitKrispNoiseFilterBVC",
+            name: "LiveKitKrispNoiseFilter-BVC",
             dependencies: [
-                "LiveKitKrispNoiseFilterShared",
-                "KrispNoiseFilterBVC",
+                "Shared",
+                "KrispNoiseFilter-BVC",
             ]
         ),
     ]

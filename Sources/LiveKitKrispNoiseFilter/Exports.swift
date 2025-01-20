@@ -1,1 +1,1 @@
-@_exported import LiveKitKrispNoiseFilterShared
+@_exported import Shared
