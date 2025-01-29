@@ -72,7 +72,7 @@ extension LiveKitKrispNoiseFilter: AudioCustomProcessingDelegate {
         }
     }
 
-    public func audioProcessingProcess(audioBuffer: LiveKit.LKAudioBuffer) {
+     public func audioProcessingProcess(audioBuffer: LiveKit.LKAudioBuffer) {
         guard _state.isEnabled else { return }
 
         guard krisp.isAuthorized else {
@@ -80,13 +80,45 @@ extension LiveKitKrispNoiseFilter: AudioCustomProcessingDelegate {
             return
         }
 
-        for channel in 0 ..< audioBuffer.channels {
+        // For stereo input, we need to mix down to mono
+        if audioBuffer.channels > 1 {
+            // Create a temporary buffer for the mixed audio
+            var mixedBuffer = [Float](repeating: 0, count: audioBuffer.framesPerBand)
+            
+            // Mix all channels
+            for frame in 0..<audioBuffer.framesPerBand {
+                var sum: Float = 0
+                for channel in 0..<audioBuffer.channels {
+                    sum += audioBuffer.rawBuffer(forChannel: channel)[frame]
+                }
+                // Average the sum to maintain consistent volume
+                mixedBuffer[frame] = sum / Float(audioBuffer.channels)
+            }
+            
+            // Process the mixed mono audio
             let result = krisp.process(withBands: Int32(audioBuffer.bands),
-                                       frames: Int32(audioBuffer.frames),
-                                       bufferSize: Int32(audioBuffer.framesPerBand),
-                                       buffer: audioBuffer.rawBuffer(forChannel: channel))
+                                     frames: Int32(audioBuffer.frames),
+                                     bufferSize: Int32(audioBuffer.framesPerBand),
+                                     buffer: mixedBuffer)
+            
             if !result {
-                errorSubject.send("LiveKitKrispNoiseFilter Process failed, channel: \(channel)")
+                errorSubject.send("LiveKitKrispNoiseFilter Process failed")
+            }
+            
+            // Copy the processed audio back to all channels
+            for channel in 0..<audioBuffer.channels {
+                memcpy(audioBuffer.rawBuffer(forChannel: channel),
+                       mixedBuffer,
+                       audioBuffer.framesPerBand * MemoryLayout<Float>.size)
+            }
+        } else {
+            // For mono input, process directly
+            let result = krisp.process(withBands: Int32(audioBuffer.bands),
+                                     frames: Int32(audioBuffer.frames),
+                                     bufferSize: Int32(audioBuffer.framesPerBand),
+                                     buffer: audioBuffer.rawBuffer(forChannel: 0))
+            if !result {
+                errorSubject.send("LiveKitKrispNoiseFilter Process failed")
             }
         }
     }
