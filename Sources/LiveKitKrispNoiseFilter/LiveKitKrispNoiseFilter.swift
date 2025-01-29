@@ -105,22 +105,20 @@ extension LiveKitKrispNoiseFilter: AudioCustomProcessingDelegate {
             
             if !result {
                 errorSubject.send("LiveKitKrispNoiseFilter Process failed")
-            }
-            
-            // Copy the processed audio back to all channels
-            for channel in 0..<audioBuffer.channels {
-                memcpy(audioBuffer.rawBuffer(forChannel: channel),
-                       mixedBuffer,
-                       audioBuffer.framesPerBand * MemoryLayout<Float>.size)
+            } else {
+                // Copy the processed audio back to all channels
+                for channel in 0..<audioBuffer.channels {
+                    memcpy(audioBuffer.rawBuffer(forChannel: channel),
+                        mixedBuffer,
+                        audioBuffer.framesPerBand * MemoryLayout<Float>.size)
+                }
             }
         } else {
             // For mono input, process directly
-            let result = audioBuffer.rawBuffer(forChannel: 0).withUnsafeMutableBufferPointer { ptr in
-                krisp.process(withBands: Int32(audioBuffer.bands),
+            let result = krisp.process(withBands: Int32(audioBuffer.bands),
                              frames: Int32(audioBuffer.frames),
                              bufferSize: Int32(audioBuffer.framesPerBand),
-                             buffer: ptr.baseAddress!)
-            }
+                             buffer: audioBuffer.rawBuffer(forChannel: 0))
             if !result {
                 errorSubject.send("LiveKitKrispNoiseFilter Process failed")
             }
