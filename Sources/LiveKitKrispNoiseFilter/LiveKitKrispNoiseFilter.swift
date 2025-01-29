@@ -96,10 +96,12 @@ extension LiveKitKrispNoiseFilter: AudioCustomProcessingDelegate {
             }
             
             // Process the mixed mono audio
-            let result = krisp.process(withBands: Int32(audioBuffer.bands),
-                                     frames: Int32(audioBuffer.frames),
-                                     bufferSize: Int32(audioBuffer.framesPerBand),
-                                     buffer: mixedBuffer)
+            let result = mixedBuffer.withUnsafeMutableBufferPointer { ptr in
+                krisp.process(withBands: Int32(audioBuffer.bands),
+                             frames: Int32(audioBuffer.frames),
+                             bufferSize: Int32(audioBuffer.framesPerBand),
+                             buffer: ptr.baseAddress!)
+            }
             
             if !result {
                 errorSubject.send("LiveKitKrispNoiseFilter Process failed")
@@ -113,10 +115,12 @@ extension LiveKitKrispNoiseFilter: AudioCustomProcessingDelegate {
             }
         } else {
             // For mono input, process directly
-            let result = krisp.process(withBands: Int32(audioBuffer.bands),
-                                     frames: Int32(audioBuffer.frames),
-                                     bufferSize: Int32(audioBuffer.framesPerBand),
-                                     buffer: audioBuffer.rawBuffer(forChannel: 0))
+            let result = audioBuffer.rawBuffer(forChannel: 0).withUnsafeMutableBufferPointer { ptr in
+                krisp.process(withBands: Int32(audioBuffer.bands),
+                             frames: Int32(audioBuffer.frames),
+                             bufferSize: Int32(audioBuffer.framesPerBand),
+                             buffer: ptr.baseAddress!)
+            }
             if !result {
                 errorSubject.send("LiveKitKrispNoiseFilter Process failed")
             }
